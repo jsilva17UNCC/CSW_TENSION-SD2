@@ -16,4 +16,14 @@ The procedure will be as follows:
 1. Upload problematic code with no changes
 2. Create two separate branches: Jason will code in-person with the Arduino and touchscreen on loan. Ahmed will code anywhere that is most convenient, but must update the branch frequently with descriptions of what updates have been made
 3. Once one or both parties find the solution, discuss the solution in as much detail as possible in comment lines.
-4. Merge whichever branch to the main branch to save its state. 
+4. Merge whichever branch to the main branch to save its state.
+
+***Please ensure that the programmer sticks to their branch to prevent complications and to keep things organized as much as possible.***
+
+# Silva's Branch
+## Thought-Dumps
+(This layout is optional; this helps me visualize my thoughts.)
+
+- (Until the original code Ahmed made gets committed and pushed into the main branch, I will investigate and write notes on any observations).
+
+
