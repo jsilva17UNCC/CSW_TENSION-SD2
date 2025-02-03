@@ -24,6 +24,6 @@ The procedure will be as follows:
 ## Thought-Dumps
 (This layout is optional; this helps me visualize my thoughts.)
 
-- (Until the original code Ahmed made gets committed and pushed into the main branch, I will investigate and write notes on any observations).
+- **(Until the original code Ahmed made gets committed and pushed into the main branch, I will investigate and write notes on any observations)**.
 
 
