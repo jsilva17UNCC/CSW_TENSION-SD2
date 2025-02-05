@@ -1,0 +1,139 @@
+#include "Arduino_H7_Video.h"
+#include "lvgl.h"
+#include "Arduino_GigaDisplayTouch.h"
+
+Arduino_H7_Video Display(800, 480, GigaDisplayShield);
+Arduino_GigaDisplayTouch TouchDetector;
+
+lv_obj_t *main_screen, *menu_screen, *manual_screen;
+lv_obj_t *preset1_screen, *preset2_screen;
+lv_obj_t *height_label;
+
+static int height = 0; // Current height value
+
+// Function to animate text writing effect
+static void write_animation_cb(lv_timer_t *timer) {
+    static uint16_t idx = 0;
+    const char *text = "Carolina Signs & Wonders";
+    lv_obj_t *label = (lv_obj_t *)lv_timer_get_user_data(timer); // Pass timer as an argument
+
+    if (idx < strlen(text)) {
+        char buf[50];
+        strncpy(buf, text, idx + 1);
+        buf[idx + 1] = '\0';
+        lv_label_set_text(label, buf);
+        idx++;
+    } else {
+        lv_timer_del(timer); // Stop the animation timer
+        lv_scr_load(menu_screen); // Transition to the menu screen after animation
+    }
+}
+
+// Function to create a button with a label
+static lv_obj_t *create_button(lv_obj_t *parent, const char *text, lv_event_cb_t event_cb) {
+    lv_obj_t *btn = lv_btn_create(parent);
+    lv_obj_set_size(btn, 300, 70); // Bigger button size
+    lv_obj_add_event_cb(btn, event_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *label = lv_label_create(btn);
+    lv_label_set_text(label, text);
+    lv_obj_center(label);
+
+    return btn;
+}
+
+// Event to return to the main menu
+static void return_menu_event_cb(lv_event_t *e) {
+    lv_scr_load(menu_screen);
+}
+
+// Event to display Preset 1
+static void preset1_event_cb(lv_event_t *e) {
+    lv_scr_load(preset1_screen);
+}
+
+// Event to display Preset 2
+static void preset2_event_cb(lv_event_t *e) {
+    lv_scr_load(preset2_screen);
+}
+
+// Manual adjustment events
+static void increment_event_cb(lv_event_t *e) {
+    height++;
+    lv_label_set_text_fmt(height_label, "Height: %d mm", height);
+}
+
+static void decrement_event_cb(lv_event_t *e) {
+    if (height > 0) {
+        height--; // Ensure height doesn't go below 0
+    }
+    lv_label_set_text_fmt(height_label, "Height: %d mm", height);
+}
+
+// Event to open Manual Adjustment
+static void manual_adjustment_event_cb(lv_event_t *e) {
+    lv_scr_load(manual_screen);
+}
+
+void setup() {
+    Display.begin();
+    TouchDetector.begin();
+
+    // Main screen with animated text
+    main_screen = lv_scr_act();
+    lv_obj_t *label = lv_label_create(main_screen);
+    lv_label_set_text(label, ""); // Start with an empty label
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_14, 0); // Set default font
+    lv_obj_set_style_transform_zoom(label, 256, 0); // Scale font to 200%
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+
+    // Start text animation (at a slower speed of 200ms)
+    lv_timer_t *timer = lv_timer_create(write_animation_cb, 200, label);
+
+    // Menu screen
+    menu_screen = lv_obj_create(NULL);
+
+    lv_obj_t *btn1 = create_button(menu_screen, "Preset 1", preset1_event_cb);
+    lv_obj_align(btn1, LV_ALIGN_TOP_MID, 0, 50);
+
+    lv_obj_t *btn2 = create_button(menu_screen, "Preset 2", preset2_event_cb);
+    lv_obj_align_to(btn2, btn1, LV_ALIGN_OUT_BOTTOM_MID, 0, 20);
+
+    lv_obj_t *btn3 = create_button(menu_screen, "Manual Adjustment", manual_adjustment_event_cb);
+    lv_obj_align_to(btn3, btn2, LV_ALIGN_OUT_BOTTOM_MID, 0, 20);
+
+    // Preset 1 screen
+    preset1_screen = lv_obj_create(NULL);
+    label = lv_label_create(preset1_screen);
+    lv_label_set_text(label, "2mm above the media");
+    lv_obj_center(label);
+    create_button(preset1_screen, "Return to Menu", return_menu_event_cb);
+
+    // Preset 2 screen
+    preset2_screen = lv_obj_create(NULL);
+    label = lv_label_create(preset2_screen);
+    lv_label_set_text(label, "4mm above the media");
+    lv_obj_center(label);
+    create_button(preset2_screen, "Return to Menu", return_menu_event_cb);
+
+    // Manual adjustment screen
+    manual_screen = lv_obj_create(NULL);
+    height_label = lv_label_create(manual_screen);
+    lv_label_set_text(height_label, "Height: 0 mm");
+    lv_obj_align(height_label, LV_ALIGN_TOP_MID, 0, 50);
+
+    // Increment Button
+    lv_obj_t *inc_btn = create_button(manual_screen, "+ Increment", increment_event_cb);
+    lv_obj_align(inc_btn, LV_ALIGN_CENTER, -100, 0);
+
+    // Decrement Button
+    lv_obj_t *dec_btn = create_button(manual_screen, "- Decrement", decrement_event_cb);
+    lv_obj_align(dec_btn, LV_ALIGN_CENTER, 100, 0);
+
+    // Return to Menu Button
+    create_button(manual_screen, "Return to Menu", return_menu_event_cb);
+}
+
+void loop() {
+    lv_timer_handler();
+}
